@@ -1,7 +1,7 @@
 package connectionDatabase
 
 import (
-	"Fiber_JWT_Authentication_backend_server/internal/configs"
+	"Fiber_JWT_Authentication_backend_server/configs"
 	"context"
 	"database/sql"
 	"fmt"

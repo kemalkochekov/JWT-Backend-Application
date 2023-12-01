@@ -1,7 +1,7 @@
-package models
+package databaseModel
 
 import (
-	"Fiber_JWT_Authentication_backend_server/internal/routes/serviceModels"
+	"Fiber_JWT_Authentication_backend_server/internal/controllers/serviceModels"
 	"time"
 )
 

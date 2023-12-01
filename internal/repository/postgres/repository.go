@@ -1,9 +1,9 @@
-package repository
+package postgres
 
 import (
-	"Fiber_JWT_Authentication_backend_server/internal/models"
-	"Fiber_JWT_Authentication_backend_server/internal/repository/connectionDatabase"
-	"Fiber_JWT_Authentication_backend_server/internal/routes/serviceModels"
+	"Fiber_JWT_Authentication_backend_server/internal/connectionDatabase"
+	"Fiber_JWT_Authentication_backend_server/internal/controllers/serviceModels"
+	"Fiber_JWT_Authentication_backend_server/internal/repository/databaseModel"
 	"Fiber_JWT_Authentication_backend_server/internal/utils"
 	"context"
 	"errors"
@@ -15,7 +15,6 @@ type UserPgRepo interface {
 	LoginUser(ctx context.Context, email string, token string, refreshToken string) error
 	GetUser(ctx context.Context, email string) (serviceModels.UserRequest, error)
 	AdminGetUsers(ctx context.Context) ([]serviceModels.UserRequest, error)
-	GetByUserID(ctx context.Context, userID int64, email string) (serviceModels.UserRequest, error)
 }
 type UserStorage struct {
 	db connectionDatabase.DBops
@@ -25,8 +24,8 @@ func NewUserStorage(database connectionDatabase.DBops) UserStorage {
 	return UserStorage{db: database}
 }
 
-func ToOfficiantStorage(s serviceModels.UserRequest) models.User {
-	return models.User{
+func ToOfficiantStorage(s serviceModels.UserRequest) databaseModel.User {
+	return databaseModel.User{
 		Firstname:    s.Firstname,
 		Lastname:     s.Lastname,
 		Password:     s.Password,
@@ -78,14 +77,14 @@ func (d *UserStorage) LoginUser(ctx context.Context, email string, token string,
 	return nil
 }
 func (d *UserStorage) AdminGetUsers(ctx context.Context) ([]serviceModels.UserRequest, error) {
-	var users []models.User
+	var users []databaseModel.User
 	err := d.db.SelectContext(ctx, &users, `SELECT id, firstname, lastname, password, email, user_type, created_at, updated_at, token, refresh_token FROM users`)
 	if err != nil {
 		return nil, err
 	}
 	usersService := utils.Map(
 		users,
-		func(item models.User) serviceModels.UserRequest {
+		func(item databaseModel.User) serviceModels.UserRequest {
 			return item.ToUserService()
 		},
 	)
@@ -93,17 +92,8 @@ func (d *UserStorage) AdminGetUsers(ctx context.Context) ([]serviceModels.UserRe
 }
 
 func (d *UserStorage) GetUser(ctx context.Context, email string) (serviceModels.UserRequest, error) {
-	var user models.User
+	var user databaseModel.User
 	err := d.db.GetContext(ctx, &user, `SELECT id, firstname, lastname, password, email, user_type, created_at, updated_at FROM users WHERE email = $1`, email)
-	if err != nil {
-		return serviceModels.UserRequest{}, err
-	}
-	return user.ToUserService(), nil
-}
-
-func (d *UserStorage) GetByUserID(ctx context.Context, userID int64, email string) (serviceModels.UserRequest, error) {
-	var user models.User
-	err := d.db.GetContext(ctx, &user, `SELECT id, firstname, lastname, password, email, user_type, created_at, updated_at, token, refresh_token FROM users WHERE id = $1 AND email = $2`, userID, email)
 	if err != nil {
 		return serviceModels.UserRequest{}, err
 	}

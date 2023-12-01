@@ -1,27 +1,30 @@
 package controllers
 
 import (
+	"Fiber_JWT_Authentication_backend_server/internal/connectionRedis"
+	"Fiber_JWT_Authentication_backend_server/internal/controllers/serviceModels"
 	"Fiber_JWT_Authentication_backend_server/internal/helpers"
-	"Fiber_JWT_Authentication_backend_server/internal/repository"
-	"Fiber_JWT_Authentication_backend_server/internal/routes/serviceModels"
+	"Fiber_JWT_Authentication_backend_server/internal/repository/databaseModel"
+	"Fiber_JWT_Authentication_backend_server/internal/repository/postgres"
+	"Fiber_JWT_Authentication_backend_server/internal/utils"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
-	"strconv"
 	"time"
 )
 
 var validate = validator.New()
 
 type UserHandler struct {
-	userRepo repository.UserPgRepo
+	userRepo      postgres.UserPgRepo
+	userRedisRepo connectionRedis.CacheRepository
 }
 
-func NewUserHandler(clientRepo repository.UserPgRepo) *UserHandler {
-	return &UserHandler{userRepo: clientRepo}
+func NewUserHandler(clientRepo postgres.UserPgRepo, clientRedisRepo connectionRedis.CacheRepository) *UserHandler {
+	return &UserHandler{userRepo: clientRepo, userRedisRepo: clientRedisRepo}
 }
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
@@ -114,11 +117,33 @@ func (u *UserHandler) Login() fiber.Handler {
 			ctx.Status(fiber.StatusInternalServerError).Set("error", msg)
 			return errors.New(msg)
 		}
+
+		userAgent := ctx.Get("User-Agent")
+		utils.SetCookie(ctx, utils.CookieData{
+			Name:    "token",
+			Value:   refreshToken,
+			Expires: time.Now().Add(15 * time.Minute),
+			Domain:  "localhost",
+		})
+		err = u.userRedisRepo.PutSession(ctxDb, databaseModel.CacheUserSession{
+			UserAgent:  userAgent,
+			SessionKey: refreshToken,
+			Duration:   time.Duration(15) * time.Minute,
+			CreatedAt:  time.Now().UnixMilli(),
+		})
+		if err != nil {
+			ctx.Status(fiber.StatusInternalServerError).Set("error", err.Error())
+			return err
+		}
 		return ctx.Status(fiber.StatusOK).JSON(user)
 	}
 }
 func (u *UserHandler) GetUsers() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
+		if ctx.Locals("email") == nil || ctx.Locals("firstname") == nil || ctx.Locals("lastname") == nil || ctx.Locals("user_type") == nil {
+			ctx.Status(fiber.StatusBadRequest).Set("error", "Unauthorized to access this resource")
+			return errors.New("Unauthorized to access this resource")
+		}
 		if err := helpers.CheckUserType(ctx, "ADMIN"); err != nil {
 			ctx.Status(fiber.StatusBadRequest).Set("error", err.Error())
 			return errors.New("Only Admin has access for this resource")
@@ -136,30 +161,31 @@ func (u *UserHandler) GetUsers() fiber.Handler {
 
 func (u *UserHandler) GetUser() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		// dynamic user_id
-		userID := ctx.Params("user_id")
 		if ctx.Locals("email") == nil || ctx.Locals("firstname") == nil || ctx.Locals("lastname") == nil || ctx.Locals("user_type") == nil {
 			ctx.Status(fiber.StatusBadRequest).Set("error", "Unauthorized to access this resource")
 			return errors.New("Unauthorized to access this resource")
 		}
 		userEmail := ctx.Locals("email").(string)
-		if err := helpers.CheckUserType(ctx, "USER"); err != nil {
-			ctx.Status(fiber.StatusBadRequest).Set("error", err.Error())
-			return err
-		}
-		userIDtoInteger, err := strconv.ParseInt(userID, 10, 64)
-		if err != nil {
-			ctx.Status(fiber.StatusBadRequest).Set("error", err.Error())
-			return err
-		}
 		ctxDb, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 		var user serviceModels.UserRequest
-		user, err = u.userRepo.GetByUserID(ctxDb, userIDtoInteger, userEmail)
+		user, err := u.userRepo.GetUser(ctxDb, userEmail)
 		if err != nil {
 			ctx.Status(fiber.StatusNotFound).Set("error", err.Error())
 			return err
 		}
 		return ctx.Status(fiber.StatusOK).JSON(user)
+	}
+}
+
+func (u *UserHandler) Logout() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		sessionKey := ctx.Cookies("token")
+		if sessionKey == "" {
+			ctx.Status(fiber.StatusBadRequest).Set("error", "Unauthorized user")
+			return errors.New("Unauthorized user")
+		}
+		utils.ClearCookie(ctx, "token", "127.0.0.1")
+		return ctx.Status(fiber.StatusOK).SendString("Successfully Logged out")
 	}
 }

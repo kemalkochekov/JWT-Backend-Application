@@ -14,6 +14,23 @@ type DatabaseConfig struct {
 	DBName   string
 }
 
+type RedisConfig struct {
+	Host               string
+	Port               string
+	MinIdleConns       int
+	PoolSize           int
+	PoolTimeout        int
+	Password           string
+	UseCertificates    bool
+	InsecureSkipVerify bool
+	CertificatesPaths  struct {
+		Cert string
+		Key  string
+		Ca   string
+	}
+	DB int
+}
+
 func FromEnv() (DatabaseConfig, error) {
 	dbConfig := DatabaseConfig{
 		Host:     os.Getenv("DB_HOST"),
