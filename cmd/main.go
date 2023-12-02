@@ -8,11 +8,12 @@ import (
 	"Fiber_JWT_Authentication_backend_server/internal/repository/redis"
 	"Fiber_JWT_Authentication_backend_server/internal/routes"
 	"context"
-	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -21,13 +22,26 @@ func main() {
 	}
 
 	httpPort := os.Getenv("PORT")
+
 	dbConfig, err := configs.FromEnv()
+	if err != nil {
+		log.Fatalf("Could not import environment variables.")
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	database, err := connectionDatabase.NewDB(ctx, dbConfig)
-	defer database.Close()
+	if err != nil {
+		log.Fatalf("Could not connect database.")
+	}
+
+	defer func(database *connectionDatabase.Database) {
+		err := database.Close()
+		if err != nil {
+			log.Printf("Error closing database: %s", err.Error())
+		}
+	}(database)
 
 	if err != nil {
 		log.Fatalf("Could not get environment variable: %v", err)
@@ -51,5 +65,9 @@ func main() {
 
 	routes.AuthRoutes(router, &client, redisClient)
 	routes.UserRoutes(router, &client, redisClient)
-	router.Listen(httpPort)
+
+	err = router.Listen(httpPort)
+	if err != nil {
+		return
+	}
 }

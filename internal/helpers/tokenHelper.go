@@ -2,9 +2,10 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"os"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 type SignedDetails struct {
@@ -39,7 +40,12 @@ func GenerateAllTokens(email string, firstname string, lastname string, id int64
 			ExpiresAt: time.Now().Local().Add(time.Minute * 15).Unix(),
 		},
 	}
+
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(SECRET_KEY))
+	if err != nil {
+		return "", "", err
+	}
+
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte(SECRET_KEY))
 	if err != nil {
 		return "", "", err
@@ -55,10 +61,10 @@ func ValidateToken(signedToken string) (*SignedDetails, string) {
 	}
 	claims, ok := token.Claims.(*SignedDetails)
 	if !ok {
-		return nil, fmt.Sprintf("The token is invalid!!!", err.Error())
+		return nil, fmt.Sprintf("The token is invalid!!! %v", err.Error())
 	}
 	if claims.ExpiresAt < time.Now().Local().Unix() {
-		return nil, fmt.Sprintf("The token is expired", err.Error())
+		return nil, fmt.Sprintf("The token is expired %v", err.Error())
 	}
 	return claims, ""
 }

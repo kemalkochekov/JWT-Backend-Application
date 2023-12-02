@@ -9,11 +9,11 @@ import (
 	"Fiber_JWT_Authentication_backend_server/internal/utils"
 	"context"
 	"errors"
-	"fmt"
+	"time"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 var validate = validator.New()
@@ -37,7 +37,7 @@ func HashPassword(password string) (string, error) {
 func VerifyPassword(userPassword string, providedPassword string) (bool, string) {
 	err := bcrypt.CompareHashAndPassword([]byte(userPassword), []byte(providedPassword))
 	if err != nil {
-		return false, fmt.Sprintf("Email or Password is incorrect!!!")
+		return false, "Email or Password is incorrect!!!"
 	}
 	return true, ""
 }
@@ -113,7 +113,7 @@ func (u *UserHandler) Login() fiber.Handler {
 		user.Token = token
 		user.RefreshToken = refreshToken
 		passwordIsValid, msg := VerifyPassword(user.Password, providedUserPassword)
-		if passwordIsValid != true {
+		if !passwordIsValid {
 			ctx.Status(fiber.StatusInternalServerError).Set("error", msg)
 			return errors.New(msg)
 		}

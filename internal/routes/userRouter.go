@@ -5,6 +5,7 @@ import (
 	"Fiber_JWT_Authentication_backend_server/internal/controllers"
 	"Fiber_JWT_Authentication_backend_server/internal/middleware"
 	"Fiber_JWT_Authentication_backend_server/internal/repository/postgres"
+
 	"github.com/gofiber/fiber/v2"
 )
 

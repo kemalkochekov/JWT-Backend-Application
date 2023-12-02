@@ -4,6 +4,7 @@ import (
 	"Fiber_JWT_Authentication_backend_server/internal/repository/databaseModel"
 	"context"
 	"errors"
+
 	"github.com/redis/go-redis/v9"
 )
 

@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"strings"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type CookieData struct {

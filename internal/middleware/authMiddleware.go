@@ -7,8 +7,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"log"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func (m *MDWManager) Authenticate() fiber.Handler {
@@ -20,14 +21,14 @@ func (m *MDWManager) Authenticate() fiber.Handler {
 		// if empty, then clear cookie
 		if authHeaders.SessionKey == "" {
 			utils.ClearCookie(ctx, "token", "localhost")
-			ctx.Status(fiber.StatusInternalServerError).Set("error", fmt.Sprintf("No Authorization header provided"))
+			ctx.Status(fiber.StatusInternalServerError).Set("error", "No Authorization header provided")
 			return errors.New("No Authorization header provided")
 		}
 		// if no session then clear cookie
 		cachedSession, err := m.officiantRedisRepo.GetSession(context.Background(), authHeaders)
 		if err != nil {
 			utils.ClearCookie(ctx, "token", "localhost")
-			ctx.Status(fiber.StatusInternalServerError).Set("error", fmt.Sprintf("No Authorization header provided"))
+			ctx.Status(fiber.StatusInternalServerError).Set("error", "No Authorization header provided")
 			return errors.New("No Authorization header provided")
 		}
 
