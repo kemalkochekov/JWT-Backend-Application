@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/pressly/goose/v3"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -44,6 +45,9 @@ func (s *Database) SelectContext(ctx context.Context, dest interface{}, query st
 	return s.db.SelectContext(ctx, dest, query, args...)
 }
 func (s *Database) Close() error {
+	if err := goose.Down(s.db.DB, "./internal/repository/migrations"); err != nil {
+		fmt.Printf("goose migration down failed: %v", err)
+	}
 	return s.db.Close()
 }
 func GenerateDsn(cfgs configs.DatabaseConfig) string {
@@ -56,6 +60,9 @@ func NewDB(ctx context.Context, cfgs configs.DatabaseConfig) (*Database, error) 
 	db, err := sqlx.Connect("postgres", GenerateDsn(cfgs))
 	if err != nil {
 		return nil, fmt.Errorf("could not create connection pool: %v", err)
+	}
+	if err := goose.Up(db.DB, "./internal/repository/migrations"); err != nil {
+		return nil, fmt.Errorf("goose migration up failed: %v", err)
 	}
 	return &Database{db: db}, nil
 }

@@ -10,6 +10,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -33,13 +35,13 @@ func main() {
 
 	database, err := connectionDatabase.NewDB(ctx, dbConfig)
 	if err != nil {
-		log.Fatalf("Could not connect database.")
+		log.Fatalf("Could not connect database because of %v.", err)
 	}
 
 	defer func(database *connectionDatabase.Database) {
 		err := database.Close()
 		if err != nil {
-			log.Printf("Error closing database: %s", err.Error())
+			log.Printf("Error closing Postgres database: %s", err.Error())
 		}
 	}(database)
 
@@ -51,6 +53,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to redis: %s", err.Error())
 	}
+
+	defer func(redisDatabase *connectionRedis.Database) {
+		err := redisDatabase.Client.Close()
+		if err != nil {
+			log.Printf("Error closing Redis database: %s", err.Error())
+		}
+	}(redisDatabase)
 
 	redisClient := redis.NewClientRedisRepository(redisDatabase.Client)
 	client := postgres.NewUserStorage(database)
@@ -65,6 +74,27 @@ func main() {
 
 	routes.AuthRoutes(router, &client, redisClient)
 	routes.UserRoutes(router, &client, redisClient)
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(quit)
+
+	go func() {
+		<-quit
+		// Perform graceful shut down
+
+		err := database.Close()
+		if err != nil {
+			log.Printf("Error closing database: %s", err.Error())
+		}
+
+		err = redisDatabase.Client.Close()
+		if err != nil {
+			log.Printf("Error closing redis database: %s", err.Error())
+		}
+
+		os.Exit(0)
+	}()
 
 	err = router.Listen(httpPort)
 	if err != nil {
