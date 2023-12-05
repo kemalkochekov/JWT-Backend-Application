@@ -1,16 +1,20 @@
 # Use the official Go image as the base image
-FROM golang:1.16.3-alpine3.13
+FROM golang:latest
 
 # Set the working directory inside the container
-# create temp dir for build app
 WORKDIR /app
 
+# Copy the entire project into the container
 COPY . .
 
+# Explicitly enable Go modules
+ENV GO111MODULE=on
 
-RUN go mod download
-RUN go build -o main ./cmd/main.go
+# Build the Go application
+RUN set -eux \
+    && go build -o main cmd/main.go
 
+# Expose the port the application runs on
 EXPOSE 8080
 
 # Command to run the Go application

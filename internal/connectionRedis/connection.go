@@ -27,7 +27,7 @@ var (
 
 func NewDatabase(ctx context.Context) (*Database, error) {
 	options := &redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "redis:6379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	}

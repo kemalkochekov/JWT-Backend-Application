@@ -1,19 +1,15 @@
 version: "3.8"
 
 services:
-  app:
-    container_name: app
+  my_app:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      - PORT=:8080
-      - DB_HOST=localhost
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=test
-      - DB_NAME=test
-      - SECRET_KEY=JWTTOKENBACKENDDEVELOPMENT
+    image: app
+    container_name: app
+    restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
@@ -22,7 +18,7 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres:16
+    image: postgres:latest
     environment:
       POSTGRES_DB: test
       POSTGRES_USER: postgres
@@ -33,5 +29,9 @@ services:
   redis:
     container_name: redis
     image: redis:latest
+    restart: unless-stopped
     ports:
       - "6379:6379"
+
+volumes:
+  dbdata:
