@@ -30,6 +30,11 @@ func main() {
 		log.Fatalf("Could not import environment variables.")
 	}
 
+	redisConfig, err := configs.FromEnvRedis()
+	if err != nil {
+		log.Fatalf("Could not import environment variables for Redis.")
+	}
+	
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -49,7 +54,7 @@ func main() {
 		log.Fatalf("Could not get environment variable: %v", err)
 	}
 
-	redisDatabase, err := connectionRedis.NewDatabase(ctx)
+	redisDatabase, err := connectionRedis.NewDatabase(ctx, redisConfig)
 	if err != nil {
 		log.Fatalf("Failed to connect to redis: %s", err.Error())
 	}

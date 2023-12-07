@@ -15,20 +15,9 @@ type DatabaseConfig struct {
 }
 
 type RedisConfig struct {
-	Host               string
-	Port               string
-	MinIdleConns       int
-	PoolSize           int
-	PoolTimeout        int
-	Password           string
-	UseCertificates    bool
-	InsecureSkipVerify bool
-	CertificatesPaths  struct {
-		Cert string
-		Key  string
-		Ca   string
-	}
-	DB int
+	Host     string
+	Port     string
+	Password string
 }
 
 func FromEnv() (DatabaseConfig, error) {
@@ -47,4 +36,16 @@ func FromEnv() (DatabaseConfig, error) {
 		return DatabaseConfig{}, errors.New("One or more database configuration parameters are empty")
 	}
 	return dbConfig, nil
+}
+
+func FromEnvRedis() (RedisConfig, error) {
+	redisConfig := RedisConfig{
+		Host:     os.Getenv("REDIS_HOST"),
+		Port:     os.Getenv("REDIS_PORT"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+	}
+	if redisConfig.Host == "" || redisConfig.Port == "" || redisConfig.Password == "" {
+		return RedisConfig{}, errors.New("One or more redis configuration parameters are empty")
+	}
+	return redisConfig, nil
 }

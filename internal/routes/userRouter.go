@@ -14,6 +14,6 @@ func UserRoutes(incomingRoutes *fiber.App, client postgres.UserPgRepo, clientRed
 	mw := middleware.NewOfficiantMiddleware(clientRedis)
 	incomingRoutes.Use(mw.Authenticate())
 	incomingRoutes.Get("/admin", serviceUser.GetUsers())
-	incomingRoutes.Get("/users", serviceUser.GetUser())
+	incomingRoutes.Get("/user", serviceUser.GetUser())
 	incomingRoutes.Get("/logout", serviceUser.Logout())
 }

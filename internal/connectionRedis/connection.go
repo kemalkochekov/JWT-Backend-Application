@@ -1,6 +1,7 @@
 package connectionRedis
 
 import (
+	"Fiber_JWT_Authentication_backend_server/configs"
 	"Fiber_JWT_Authentication_backend_server/internal/repository/databaseModel"
 	"context"
 	"errors"
@@ -25,11 +26,11 @@ var (
 	Ctx    = context.TODO()
 )
 
-func NewDatabase(ctx context.Context) (*Database, error) {
+func NewDatabase(ctx context.Context, redisConfig configs.RedisConfig) (*Database, error) {
 	options := &redis.Options{
-		Addr:     "redis:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Addr:     redisConfig.Host + redisConfig.Port,
+		Password: redisConfig.Password, // no password set
+		DB:       0,                    // use default DB
 	}
 
 	client := redis.NewClient(options)

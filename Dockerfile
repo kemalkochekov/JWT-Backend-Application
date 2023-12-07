@@ -11,8 +11,7 @@ COPY . .
 ENV GO111MODULE=on
 
 # Build the Go application
-RUN set -eux \
-    && go build -o main cmd/main.go
+RUN go build -o main cmd/main.go
 
 # Expose the port the application runs on
 EXPOSE 8080
