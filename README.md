@@ -105,7 +105,7 @@ This command performs linting checks on your entire project and provides a detai
 
 3. Customize Linting Rules:
 
-You can customize the linting rules by modifying the .golangci.yml file.
+You can customize the linting rules by modifying the `.golangci.yml` file.
 
 For more information on using golangci-lint, refer to the golangci-lint documentation.
 
