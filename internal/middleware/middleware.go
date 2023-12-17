@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"Fiber_JWT_Authentication_backend_server/internal/connectionRedis"
+	"Fiber_JWT_Authentication_backend_server/pkg/connectionRedis"
 )
 
 type MDWManager struct {

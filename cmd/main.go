@@ -2,11 +2,11 @@ package main
 
 import (
 	"Fiber_JWT_Authentication_backend_server/configs"
-	"Fiber_JWT_Authentication_backend_server/internal/connectionDatabase"
-	"Fiber_JWT_Authentication_backend_server/internal/connectionRedis"
 	"Fiber_JWT_Authentication_backend_server/internal/repository/postgres"
 	"Fiber_JWT_Authentication_backend_server/internal/repository/redis"
 	"Fiber_JWT_Authentication_backend_server/internal/routes"
+	"Fiber_JWT_Authentication_backend_server/pkg/connectionDatabase"
+	"Fiber_JWT_Authentication_backend_server/pkg/connectionRedis"
 	"context"
 	"log"
 	"os"
@@ -17,6 +17,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
+
+const contextTimeOut = 10 * time.Second
 
 func main() {
 	if err := godotenv.Load(".env"); err != nil {
@@ -34,8 +36,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not import environment variables for Redis.")
 	}
-	
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeOut)
 	defer cancel()
 
 	database, err := connectionDatabase.NewDB(ctx, dbConfig)
@@ -82,6 +84,7 @@ func main() {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
 	defer signal.Stop(quit)
 
 	go func() {

@@ -3,10 +3,9 @@ package middleware
 import (
 	"Fiber_JWT_Authentication_backend_server/internal/helpers"
 	"Fiber_JWT_Authentication_backend_server/internal/repository/databaseModel"
-	"Fiber_JWT_Authentication_backend_server/internal/utils"
+	"Fiber_JWT_Authentication_backend_server/pkg/utils"
 	"context"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +21,7 @@ func (m *MDWManager) Authenticate() fiber.Handler {
 		if authHeaders.SessionKey == "" {
 			utils.ClearCookie(ctx, "token", "localhost")
 			ctx.Status(fiber.StatusInternalServerError).Set("error", "No Authorization header provided")
+
 			return errors.New("No Authorization header provided")
 		}
 		// if no session then clear cookie
@@ -29,6 +29,7 @@ func (m *MDWManager) Authenticate() fiber.Handler {
 		if err != nil {
 			utils.ClearCookie(ctx, "token", "localhost")
 			ctx.Status(fiber.StatusInternalServerError).Set("error", "No Authorization header provided")
+
 			return errors.New("No Authorization header provided")
 		}
 
@@ -37,13 +38,13 @@ func (m *MDWManager) Authenticate() fiber.Handler {
 			ctx.Status(fiber.StatusInternalServerError).Set("error", msg)
 			return errors.New(msg)
 		}
-		fmt.Println()
 		// using Locals instead of set and get
 		ctx.Locals("email", claims.Email)
 		ctx.Locals("firstname", claims.Firstname)
 		ctx.Locals("lastname", claims.Lastname)
 		ctx.Locals("user_type", claims.UserType)
 		log.Printf("Successfully Authenticated")
+
 		return ctx.Next()
 	}
 }

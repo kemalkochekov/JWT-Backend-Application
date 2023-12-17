@@ -11,7 +11,6 @@ type CacheUserSession struct {
 	// fields for keys in redis
 	SessionKey string // userId + random uuid
 	UserAgent  string `json:"userAgent"`
-
-	Duration  time.Duration
-	CreatedAt int64 `json:"createdAt"` // unix milli
+	Duration   time.Duration
+	CreatedAt  int64 `json:"createdAt"` // unix milli
 }

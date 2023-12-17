@@ -1,8 +1,8 @@
 package redis
 
 import (
-	"Fiber_JWT_Authentication_backend_server/internal/connectionRedis"
 	"Fiber_JWT_Authentication_backend_server/internal/repository/databaseModel"
+	"Fiber_JWT_Authentication_backend_server/pkg/connectionRedis"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,6 +13,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 )
+
+const keysSize = 10
 
 type clientRedisRepo struct {
 	db *redis.Client
@@ -33,12 +35,12 @@ func (r *clientRedisRepo) getDbKey(sessionKey, userAgent string) string {
 	}, ":")
 }
 
-// used for checking in middleware
+// used for checking in middleware.
 func (r *clientRedisRepo) getDbKeyByAuthHeaders(args databaseModel.AuthHeaders) string {
 	return r.getDbKey(args.SessionKey, args.UserAgent)
 }
 
-// used for login
+// used for login.
 func (r *clientRedisRepo) getDbKeyByCacheClientSession(args databaseModel.CacheUserSession) string {
 	return r.getDbKey(args.SessionKey, args.UserAgent)
 }
@@ -46,6 +48,7 @@ func (r *clientRedisRepo) getDbKeyByCacheClientSession(args databaseModel.CacheU
 func (r *clientRedisRepo) GetSession(ctx context.Context, authHeaders databaseModel.AuthHeaders) (databaseModel.CacheUserSession, error) {
 	result := databaseModel.CacheUserSession{}
 	key := r.getDbKeyByAuthHeaders(authHeaders)
+
 	valueString, err := r.db.Get(ctx, key).Result()
 	if err != nil && errors.Is(err, redis.Nil) {
 		return result, errors.New("Not Authorized User")
@@ -89,7 +92,7 @@ func (r *clientRedisRepo) DelAllSessions(ctx context.Context, userId int) error 
 }
 
 func (r *clientRedisRepo) deleteSessionsByRegex(ctx context.Context, regex string) error {
-	keys := make([]string, 0, 10)
+	keys := make([]string, 0, keysSize)
 
 	iter := r.db.Scan(ctx, 0, regex, 0).Iterator()
 	for iter.Next(ctx) {
@@ -115,6 +118,7 @@ func (r *clientRedisRepo) LockRequests(ctx context.Context, phoneNumber string) 
 		fmt.Sprintf("%d", time.Now().Unix()),
 		1*time.Second,
 	).Result()
+
 	if err != nil {
 		return set, err
 	}

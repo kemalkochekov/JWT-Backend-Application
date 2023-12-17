@@ -2,7 +2,7 @@ package serviceModels
 
 import "time"
 
-// validate should without empty spaces
+// Validate should without empty spaces.
 type UserRequest struct {
 	ID           int64     `json:"id"`
 	Firstname    string    `json:"firstname" validate:"required,min=2,max=100"`

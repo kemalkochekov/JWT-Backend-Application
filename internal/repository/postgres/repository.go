@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	"Fiber_JWT_Authentication_backend_server/internal/connectionDatabase"
 	"Fiber_JWT_Authentication_backend_server/internal/controllers/serviceModels"
 	"Fiber_JWT_Authentication_backend_server/internal/repository/databaseModel"
-	"Fiber_JWT_Authentication_backend_server/internal/utils"
+	"Fiber_JWT_Authentication_backend_server/pkg/connectionDatabase"
+	"Fiber_JWT_Authentication_backend_server/pkg/utils"
 	"context"
 	"errors"
 	"time"
@@ -38,15 +38,15 @@ func ToOfficiantStorage(s serviceModels.UserRequest) databaseModel.User {
 	}
 }
 
-//service into database convert func if needed
-
 func (d *UserStorage) RegisterUser(ctx context.Context, userReq serviceModels.UserRequest) error {
 	user := ToOfficiantStorage(userReq)
 	var exists bool
+
 	err := d.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", user.Email).Scan(&exists)
 	if err != nil {
 		return err
 	}
+
 	if exists {
 		return errors.New("Email or Phone number already exists")
 	}
@@ -61,41 +61,53 @@ func (d *UserStorage) RegisterUser(ctx context.Context, userReq serviceModels.Us
 		user.CreatedAt,
 		user.UpdatedAt,
 	)
+
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (d *UserStorage) LoginUser(ctx context.Context, email string, token string, refreshToken string) error {
-	updated_at, _ := time.Parse(time.RFC1123, time.Now().Format(time.RFC1123))
-	_, err := d.db.ExecContext(ctx,
+	updated_at, err := time.Parse(time.RFC1123, time.Now().Format(time.RFC1123))
+	if err != nil {
+		return err
+	}
+
+	_, err = d.db.ExecContext(ctx,
 		`UPDATE users SET token = $2, refresh_token = $3, updated_at = $4 WHERE email = $1`, email, token, refreshToken, updated_at)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 func (d *UserStorage) AdminGetUsers(ctx context.Context) ([]serviceModels.UserRequest, error) {
 	var users []databaseModel.User
+
 	err := d.db.SelectContext(ctx, &users, `SELECT id, firstname, lastname, password, email, user_type, created_at, updated_at, token, refresh_token FROM users`)
 	if err != nil {
 		return nil, err
 	}
+
 	usersService := utils.Map(
 		users,
 		func(item databaseModel.User) serviceModels.UserRequest {
 			return item.ToUserService()
 		},
 	)
+
 	return usersService, nil
 }
 
 func (d *UserStorage) GetUser(ctx context.Context, email string) (serviceModels.UserRequest, error) {
 	var user databaseModel.User
+
 	err := d.db.GetContext(ctx, &user, `SELECT id, firstname, lastname, password, email, user_type, created_at, updated_at FROM users WHERE email = $1`, email)
 	if err != nil {
 		return serviceModels.UserRequest{}, err
 	}
+
 	return user.ToUserService(), nil
 }

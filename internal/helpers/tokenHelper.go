@@ -8,6 +8,11 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+const (
+	claimsTimeLimit        = 5 * time.Minute
+	refreshClaimsTimeLimit = 30 * time.Minute
+)
+
 type SignedDetails struct {
 	Email     string
 	Lastname  string
@@ -27,7 +32,7 @@ func GenerateAllTokens(email string, firstname string, lastname string, id int64
 		UserID:    id,
 		UserType:  userType,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Minute * 5).Unix(),
+			ExpiresAt: time.Now().Local().Add(claimsTimeLimit).Unix(),
 		},
 	}
 	refreshClaims := SignedDetails{
@@ -37,7 +42,7 @@ func GenerateAllTokens(email string, firstname string, lastname string, id int64
 		UserID:    id,
 		UserType:  userType,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Minute * 15).Unix(),
+			ExpiresAt: time.Now().Local().Add(refreshClaimsTimeLimit).Unix(),
 		},
 	}
 
@@ -50,21 +55,26 @@ func GenerateAllTokens(email string, firstname string, lastname string, id int64
 	if err != nil {
 		return "", "", err
 	}
+
 	return token, refreshToken, nil
 }
 func ValidateToken(signedToken string) (*SignedDetails, string) {
 	token, err := jwt.ParseWithClaims(signedToken, &SignedDetails{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(SECRET_KEY), nil
 	})
+
 	if err != nil {
 		return nil, err.Error()
 	}
 	claims, ok := token.Claims.(*SignedDetails)
+
 	if !ok {
 		return nil, fmt.Sprintf("The token is invalid!!! %v", err.Error())
 	}
+
 	if claims.ExpiresAt < time.Now().Local().Unix() {
 		return nil, fmt.Sprintf("The token is expired %v", err.Error())
 	}
+
 	return claims, ""
 }

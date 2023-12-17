@@ -11,5 +11,6 @@ func CheckUserType(ctx *fiber.Ctx, role string) error {
 	if userType != role {
 		return errors.New("unauthorized to access this resource")
 	}
+
 	return nil
 }

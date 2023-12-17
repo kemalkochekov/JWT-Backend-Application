@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"Fiber_JWT_Authentication_backend_server/internal/connectionRedis"
 	"Fiber_JWT_Authentication_backend_server/internal/controllers"
 	"Fiber_JWT_Authentication_backend_server/internal/middleware"
 	"Fiber_JWT_Authentication_backend_server/internal/repository/postgres"
+	"Fiber_JWT_Authentication_backend_server/pkg/connectionRedis"
 
 	"github.com/gofiber/fiber/v2"
 )
