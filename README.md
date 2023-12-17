@@ -7,6 +7,11 @@ This is a backend development app that utilizes JSON Web Tokens (JWT) for authen
 - [Usage](#usage)
 - [API Endpoints](#api-endpoints)
 - [Architecture Layers](#architecture-layers)
+  - [API Flow without JWT Authentication Middleware](#api-flow-without-jwt-authentication-middleware)
+  - [API Flow with JWT Authentication Middleware](#api-flow-with-jwt-authentication-middleware)
+- [Linting and Code Quality](#linting-and-code-quality)
+  - [Linting Installation](#linting-installation)
+  - [Linting Usage](#linting-usage)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -40,7 +45,7 @@ Before running this application, ensure that you have the following prerequisite
   ```
 2. The application will be accessible at:
   ```
-    http://127.0.0.1:8080
+    localhost:8080
   ```
 
 ## API Endpoints
@@ -67,6 +72,27 @@ I've designed a structured Go (Golang) backend architecture using Fiber, Postgre
 
 ### API Flow with JWT Authentication Middleware
 ![with](https://github.com/kemalkochekov/JWT-Backend-Development-App/assets/85355663/bbfa0665-2c7b-45d9-aae1-d12bb87d783b)
+
+## Linting and Code Quality
+
+This project maintains code quality using `golangci-lint`, a fast and customizable Go linter. `golangci-lint` checks for various issues, ensures code consistency, and enforces best practices, helping maintain a clean and standardized codebase.
+
+### Linting Installation
+
+To install `golangci-lint`, you can use `brew`:
+
+```bash
+  brew install golangci-lint
+```
+
+### Linting Usage
+
+Once installed, you can run golangci-lint on your project by executing the following command at the root directory of your project:
+
+```bash
+  golangci-lint run
+```
+This command performs linting checks on your entire project and provides a detailed report highlighting any issues or violations found.
 
 ## Contributing
 Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request. Ensure that you follow the existing code style and conventions.
