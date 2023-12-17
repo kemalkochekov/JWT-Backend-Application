@@ -86,13 +86,28 @@ To install `golangci-lint`, you can use `brew`:
 ```
 
 ### Linting Usage
+1. Configuration: 
 
-Once installed, you can run golangci-lint on your project by executing the following command at the root directory of your project:
+After installing golangci-lint, create or use a personal configuration file (e.g., .golangci.yml) to define specific linting rules and settings:
+```bash
+  golangci-lint run --config=.golangci.yml
+```
+This command initializes linting based on the specified configuration file.
+
+2. Run the linter:
+
+Once configuration is completed, you can execute the following command at the root directory of your project to run golangci-lint:
 
 ```bash
   golangci-lint run
 ```
 This command performs linting checks on your entire project and provides a detailed report highlighting any issues or violations found.
+
+3. Customize Linting Rules:
+
+You can customize the linting rules by modifying the .golangci.yml file.
+
+For more information on using golangci-lint, refer to the golangci-lint documentation.
 
 ## Contributing
 Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request. Ensure that you follow the existing code style and conventions.
