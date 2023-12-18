@@ -27,7 +27,7 @@ Before running this application, ensure that you have the following prerequisite
 
 1. Clone this repository
   ```bash
-    https://github.com/kemalkochekov/JWT-Backend-Application.git
+    git clone https://github.com/kemalkochekov/JWT-Backend-Application.git
   ```
 2. Navigate to the project directory:
   ```
